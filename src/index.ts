@@ -1,4 +1,4 @@
-import type {
+import {
 	ConnectedState,
 	ConnectedNetworkState,
 	GenericContractsInfos,
@@ -7,20 +7,34 @@ import type {
 } from 'web3-connection';
 import {createPublicClient, createWalletClient, custom, getContract} from 'viem';
 import type {
-	WalletClient,
-	PublicClient,
 	GetContractReturnType,
 	CustomTransport,
 	Address,
-	LocalAccount,
 	Chain,
+	Transport,
+	Account,
+	Client,
 } from 'viem';
+
+type KeyedClient<
+  TTransport extends Transport = Transport,
+  TChain extends Chain | undefined = Chain | undefined,
+  TAccount extends Account | undefined = Account | undefined,
+> =
+  | {
+      public?: Client<TTransport, TChain>
+      wallet: Client<TTransport, TChain, TAccount>
+    }
+  | {
+      public: Client<TTransport, TChain>
+      wallet?: Client<TTransport, TChain, TAccount>
+    }
+
 
 export type ViemContracts<ContractsTypes extends GenericContractsInfos, TAddress extends Address> = {
 	[ContractName in keyof ContractsTypes]: GetContractReturnType<
 		ContractsTypes[ContractName]['abi'],
-		PublicClient<CustomTransport>,
-		WalletClient<CustomTransport, Chain, LocalAccount<TAddress>>,
+		KeyedClient<CustomTransport>,
 		TAddress
 	>;
 };
@@ -34,8 +48,7 @@ export function viemify<ContractsInfos extends GenericContractsInfos, TAddress e
 	account: ConnectedAccountState<TAddress>;
 	network: ConnectedNetworkState<ContractsInfos>;
 	contracts: ViemContracts<ContractsInfos, TAddress>;
-	walletClient: WalletClient;
-	publicClient: PublicClient;
+	client: KeyedClient;
 } {
 	const transport = custom(connection.provider);
 	const chain: Chain = {
@@ -47,11 +60,12 @@ export function viemify<ContractsInfos extends GenericContractsInfos, TAddress e
 		account: account.address,
 		chain,
 	});
+	const client = {wallet: walletClient, public: publicClient};
 	const anyContracts = network.contracts as GenericContractsInfos;
 	const contracts: ViemContracts<ContractsInfos, TAddress> = Object.keys(network.contracts).reduce(
 		(prev, curr) => {
 			const contract = anyContracts[curr];
-			const viemContract = getContract({...contract, walletClient, publicClient});
+			const viemContract = getContract({...contract, client});
 
 			(prev as any)[curr] = viemContract;
 			return prev;
@@ -62,8 +76,7 @@ export function viemify<ContractsInfos extends GenericContractsInfos, TAddress e
 		connection,
 		account: account as ConnectedAccountState<TAddress>,
 		network,
-		publicClient,
-		walletClient,
+		client,
 		contracts,
 	}
 }
@@ -81,8 +94,7 @@ export function initViemContracts<ContractsInfos extends GenericContractsInfos>(
 				account: ConnectedAccountState<TAddress>;
 				network: ConnectedNetworkState<ContractsInfos>;
 				contracts: ViemContracts<ContractsInfos, TAddress>;
-				walletClient: WalletClient;
-				publicClient: PublicClient;
+				client: KeyedClient
 			}) => Promise<T>
 		) {
 			return execute(async ({connection, network, account}) => {
