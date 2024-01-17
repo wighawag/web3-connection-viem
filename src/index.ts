@@ -43,8 +43,10 @@ export function viemify<ContractsInfos extends GenericContractsInfos, TAddress e
 	account: ConnectedAccountState<TAddress>;
 	network: ConnectedNetworkState<ContractsInfos>;
 	contracts: ViemContracts<ContractsInfos, TAddress>;
-	client: ClientPair;
+	client: ClientPair<CustomTransport, Chain, Account<TAddress>>;
 } {
+
+	
 	const transport = custom(connection.provider);
 	const chain: Chain = {
 		id: parseInt(network.chainId),
@@ -52,7 +54,10 @@ export function viemify<ContractsInfos extends GenericContractsInfos, TAddress e
 	const publicClient = createPublicClient({transport, chain});
 	const walletClient = createWalletClient({
 		transport,
-		account: account.address,
+		account: {
+			address: account.address,
+			type: 'json-rpc'
+		  },
 		chain,
 	});
 	const client = {wallet: walletClient, public: publicClient};
