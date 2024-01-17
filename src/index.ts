@@ -16,25 +16,20 @@ import type {
 	Client,
 } from 'viem';
 
-type KeyedClient<
+type ClientPair<
   TTransport extends Transport = Transport,
   TChain extends Chain | undefined = Chain | undefined,
   TAccount extends Account | undefined = Account | undefined,
-> =
-  | {
-      public?: Client<TTransport, TChain>
-      wallet: Client<TTransport, TChain, TAccount>
-    }
-  | {
+> ={
       public: Client<TTransport, TChain>
-      wallet?: Client<TTransport, TChain, TAccount>
-    }
+      wallet: Client<TTransport, TChain, TAccount>
+    };
 
 
 export type ViemContracts<ContractsTypes extends GenericContractsInfos, TAddress extends Address> = {
 	[ContractName in keyof ContractsTypes]: GetContractReturnType<
 		ContractsTypes[ContractName]['abi'],
-		KeyedClient<CustomTransport>,
+		ClientPair<CustomTransport>,
 		TAddress
 	>;
 };
@@ -48,7 +43,7 @@ export function viemify<ContractsInfos extends GenericContractsInfos, TAddress e
 	account: ConnectedAccountState<TAddress>;
 	network: ConnectedNetworkState<ContractsInfos>;
 	contracts: ViemContracts<ContractsInfos, TAddress>;
-	client: KeyedClient;
+	client: ClientPair;
 } {
 	const transport = custom(connection.provider);
 	const chain: Chain = {
@@ -94,7 +89,7 @@ export function initViemContracts<ContractsInfos extends GenericContractsInfos>(
 				account: ConnectedAccountState<TAddress>;
 				network: ConnectedNetworkState<ContractsInfos>;
 				contracts: ViemContracts<ContractsInfos, TAddress>;
-				client: KeyedClient
+				client: ClientPair
 			}) => Promise<T>
 		) {
 			return execute(async ({connection, network, account}) => {
