@@ -29,7 +29,7 @@ type ClientPair<
 export type ViemContracts<ContractsTypes extends GenericContractsInfos, TAddress extends Address> = {
 	[ContractName in keyof ContractsTypes]: GetContractReturnType<
 		ContractsTypes[ContractName]['abi'],
-		ClientPair<CustomTransport>,
+		ClientPair<CustomTransport, Chain, Account<TAddress>>,
 		TAddress
 	>;
 };
