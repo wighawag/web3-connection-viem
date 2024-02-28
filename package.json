@@ -1,6 +1,6 @@
 {
 	"name": "web3-connection-viem",
-	"version": "0.1.7",
+	"version": "0.1.8",
 	"description": "viem support for web3-connection",
 	"publishConfig": {
 		"access": "public"
