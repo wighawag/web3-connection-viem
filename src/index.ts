@@ -66,7 +66,7 @@ export type ViemContracts<
 > = {
 	[ContractName in keyof ContractsTypes]: GetContractReturnType<
 		ContractsTypes[ContractName]['abi'],
-		ClientPair<CustomTransport, TChain, Account<TAddress>>,
+		ClientPairWithOptionalActions<TAddress>,
 		TAddress
 	>;
 };
@@ -182,7 +182,7 @@ export function initViemContracts<ContractsInfos extends GenericContractsInfos>(
 				account: ConnectedAccountState<TAddress>;
 				network: ConnectedNetworkState<ContractsInfos>;
 				contracts: ViemContracts<ContractsInfos, TChain, TAddress>;
-				client: ClientPair;
+				client: ClientPairWithOptionalActions<TAddress>;
 			}) => Promise<T>
 		) {
 			return execute(async ({connection, network, account}) => {
