@@ -14,10 +14,24 @@ import {
 	walletActionsL1,
 	walletActionsL2,
 	publicActionsL1,
+	PublicActionsL2,
+	PublicActionsL1,
+	WalletActionsL1,
+	WalletActionsL2,
 } from 'viem/op-stack';
 import {chainConfig as celoChainConfig} from 'viem/celo';
-import {chainConfig as zksyncChainConfig, eip712WalletActions} from 'viem/zksync';
-import type {GetContractReturnType, CustomTransport, Address, Chain, Transport, Account, Client} from 'viem';
+import {chainConfig as zksyncChainConfig, eip712WalletActions, Eip712WalletActions} from 'viem/zksync';
+import type {
+	GetContractReturnType,
+	CustomTransport,
+	Address,
+	Chain,
+	Transport,
+	Account,
+	Client,
+	PublicClient,
+	WalletClient,
+} from 'viem';
 
 type ClientPair<
 	TTransport extends Transport = Transport,
@@ -28,10 +42,14 @@ type ClientPair<
 	wallet: Client<TTransport, TChain, TAccount>;
 };
 
-export type ViemContracts<ContractsTypes extends GenericContractsInfos, TAddress extends Address> = {
+export type ViemContracts<
+	ContractsTypes extends GenericContractsInfos,
+	TChain extends Chain,
+	TAddress extends Address
+> = {
 	[ContractName in keyof ContractsTypes]: GetContractReturnType<
 		ContractsTypes[ContractName]['abi'],
-		ClientPair<CustomTransport, Chain, Account<TAddress>>,
+		ClientPair<CustomTransport, TChain, Account<TAddress>>,
 		TAddress
 	>;
 };
@@ -51,7 +69,16 @@ export function fromChainInfoToChain(chainInfo: ChainInfo): Chain {
 	}
 }
 
-export function viemify<ContractsInfos extends GenericContractsInfos, TAddress extends Address = Address>({
+type AccountType<TAddress extends Address> = {
+	address: TAddress;
+	type: 'json-rpc';
+};
+
+export function viemify<
+	ContractsInfos extends GenericContractsInfos,
+	TChain extends Chain,
+	TAddress extends Address = Address
+>({
 	connection,
 	account,
 	network,
@@ -65,39 +92,57 @@ export function viemify<ContractsInfos extends GenericContractsInfos, TAddress e
 	connection: ConnectedState;
 	account: ConnectedAccountState<TAddress>;
 	network: ConnectedNetworkState<ContractsInfos>;
-	contracts: ViemContracts<ContractsInfos, TAddress>;
+	contracts: ViemContracts<ContractsInfos, TChain, TAddress>;
 	client: ClientPair<CustomTransport, Chain, Account<TAddress>>;
 } {
 	const transport = custom(providerOverride ? providerOverride : connection.provider);
 	const chain: Chain = fromChainInfoToChain(network.chainInfo);
+	const viemAccount: AccountType<TAddress> = {
+		address: account.address,
+		type: 'json-rpc',
+	};
 	let publicClient = createPublicClient({transport, chain});
 	let walletClient = createWalletClient({
 		transport,
-		account: {
-			address: account.address,
-			type: 'json-rpc',
-		},
+		account: viemAccount,
 		chain,
 	});
 
+	let opPublicClient:
+		| (PublicClient<typeof transport, Chain> & PublicActionsL2<Chain> & PublicActionsL1<Chain>)
+		| undefined;
+	let opWalletClient:
+		| (WalletClient<typeof transport, Chain, AccountType<TAddress>> &
+				WalletActionsL2<Chain, AccountType<TAddress>> &
+				WalletActionsL1<Chain, AccountType<TAddress>>)
+		| undefined;
 	if (network.chainInfo.chainType === 'op-stack') {
-		publicClient = publicClient.extend(publicActionsL2()).extend(publicActionsL1());
-		walletClient = walletClient.extend(walletActionsL2()).extend(walletActionsL1());
+		opPublicClient = publicClient.extend(publicActionsL2()).extend(publicActionsL1());
+		publicClient = opPublicClient;
+		opWalletClient = walletClient.extend(walletActionsL2()).extend(walletActionsL1());
+		walletClient = opWalletClient;
 	}
 
+	let zksyncWalletClient:
+		| (WalletClient<typeof transport, Chain, AccountType<TAddress>> & Eip712WalletActions<Chain, AccountType<TAddress>>)
+		| undefined;
 	if (network.chainInfo.chainType === 'zksync') {
-		walletClient = walletClient.extend(eip712WalletActions());
+		zksyncWalletClient = walletClient.extend(eip712WalletActions());
+		walletClient = zksyncWalletClient;
 	}
 
-	const client = {wallet: walletClient, public: publicClient};
+	const client = {wallet: opWalletClient || zksyncWalletClient || walletClient, public: opPublicClient || publicClient};
 	const anyContracts = network.contracts as GenericContractsInfos;
-	const contracts: ViemContracts<ContractsInfos, TAddress> = Object.keys(network.contracts).reduce((prev, curr) => {
-		const contract = anyContracts[curr];
-		const viemContract = getContract({...contract, client});
+	const contracts: ViemContracts<ContractsInfos, TChain, TAddress> = Object.keys(network.contracts).reduce(
+		(prev, curr) => {
+			const contract = anyContracts[curr];
+			const viemContract = getContract({...contract, client});
 
-		(prev as any)[curr] = viemContract;
-		return prev;
-	}, {} as ViemContracts<ContractsInfos, TAddress>);
+			(prev as any)[curr] = viemContract;
+			return prev;
+		},
+		{} as ViemContracts<ContractsInfos, TChain, TAddress>
+	);
 	return {
 		connection,
 		account: account as ConnectedAccountState<TAddress>,
@@ -114,17 +159,17 @@ export function initViemContracts<ContractsInfos extends GenericContractsInfos>(
 	) => Promise<T | undefined>
 ) {
 	return {
-		execute<T, TAddress extends Address>(
+		execute<T, TChain extends Chain, TAddress extends Address>(
 			callback: (state: {
 				connection: ConnectedState;
 				account: ConnectedAccountState<TAddress>;
 				network: ConnectedNetworkState<ContractsInfos>;
-				contracts: ViemContracts<ContractsInfos, TAddress>;
+				contracts: ViemContracts<ContractsInfos, TChain, TAddress>;
 				client: ClientPair;
 			}) => Promise<T>
 		) {
 			return execute(async ({connection, network, account}) => {
-				const viemified = viemify<ContractsInfos, TAddress>({
+				const viemified = viemify<ContractsInfos, TChain, TAddress>({
 					connection,
 					network,
 					account: account as ConnectedAccountState<TAddress>,
