@@ -4,6 +4,7 @@ import {
 	GenericContractsInfos,
 	ConnectedAccountState,
 	ExecuteCallback,
+	Web3ConnectionProvider,
 } from 'web3-connection';
 import {createPublicClient, createWalletClient, custom, getContract} from 'viem';
 import type {
@@ -34,10 +35,11 @@ export type ViemContracts<ContractsTypes extends GenericContractsInfos, TAddress
 	>;
 };
 
-export function viemify<ContractsInfos extends GenericContractsInfos, TAddress extends Address = Address>({connection, account, network}: {
+export function viemify<ContractsInfos extends GenericContractsInfos, TAddress extends Address = Address>({connection, account, network, providerOverride}: {
 	connection: ConnectedState;
 	account: ConnectedAccountState<TAddress>;
 	network: ConnectedNetworkState<ContractsInfos>;
+	providerOverride?: Web3ConnectionProvider;
 }): {
 	connection: ConnectedState;
 	account: ConnectedAccountState<TAddress>;
@@ -47,7 +49,7 @@ export function viemify<ContractsInfos extends GenericContractsInfos, TAddress e
 } {
 
 	
-	const transport = custom(connection.provider);
+	const transport = custom(providerOverride ? providerOverride : connection.provider);
 	const chain: Chain = {
 		id: parseInt(network.chainId),
 	} as Chain;
