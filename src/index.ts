@@ -42,6 +42,23 @@ type ClientPair<
 	wallet: Client<TTransport, TChain, TAccount>;
 };
 
+export type ClientPairWithOptionalActions<TAddress extends Address> = ClientPair<
+	CustomTransport,
+	Chain,
+	Account<TAddress>
+> & {
+	wallet:
+		| WalletClient<CustomTransport, Chain, Account<TAddress>>
+		| (WalletClient<CustomTransport, Chain, AccountType<TAddress>> &
+				WalletActionsL2<Chain, AccountType<TAddress>> &
+				WalletActionsL1<Chain, AccountType<TAddress>>)
+		| (WalletClient<CustomTransport, Chain, AccountType<TAddress>> & Eip712WalletActions<Chain, AccountType<TAddress>>);
+
+	public:
+		| (PublicClient<CustomTransport, Chain> & PublicActionsL2<Chain> & PublicActionsL1<Chain>)
+		| PublicClient<CustomTransport, Chain>;
+};
+
 export type ViemContracts<
 	ContractsTypes extends GenericContractsInfos,
 	TChain extends Chain,
@@ -93,19 +110,7 @@ export function viemify<
 	account: ConnectedAccountState<TAddress>;
 	network: ConnectedNetworkState<ContractsInfos>;
 	contracts: ViemContracts<ContractsInfos, TChain, TAddress>;
-	client: ClientPair<CustomTransport, Chain, Account<TAddress>> & {
-		wallet:
-			| WalletClient<CustomTransport, Chain, Account<TAddress>>
-			| (WalletClient<CustomTransport, Chain, AccountType<TAddress>> &
-					WalletActionsL2<Chain, AccountType<TAddress>> &
-					WalletActionsL1<Chain, AccountType<TAddress>>)
-			| (WalletClient<CustomTransport, Chain, AccountType<TAddress>> &
-					Eip712WalletActions<Chain, AccountType<TAddress>>);
-
-		public:
-			| (PublicClient<CustomTransport, Chain> & PublicActionsL2<Chain> & PublicActionsL1<Chain>)
-			| PublicClient<CustomTransport, Chain>;
-	};
+	client: ClientPairWithOptionalActions<TAddress>;
 } {
 	const transport = custom(providerOverride ? providerOverride : connection.provider);
 	const chain: Chain = fromChainInfoToChain(network.chainInfo);
