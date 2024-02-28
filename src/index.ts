@@ -5,8 +5,12 @@ import {
 	ConnectedAccountState,
 	ExecuteCallback,
 	Web3ConnectionProvider,
+	ChainInfo,
 } from 'web3-connection';
 import {createPublicClient, createWalletClient, custom, getContract} from 'viem';
+import {chainConfig as opChainConfig} from 'viem/op-stack';
+import {chainConfig as celoChainConfig} from 'viem/celo';
+import {chainConfig as zksyncChainConfig} from 'viem/zksync';
 import type {
 	GetContractReturnType,
 	CustomTransport,
@@ -35,6 +39,24 @@ export type ViemContracts<ContractsTypes extends GenericContractsInfos, TAddress
 	>;
 };
 
+export function fromChainInfoToChain(chainInfo: ChainInfo): Chain {
+
+	switch (chainInfo.chainType) {
+		case 'op-stack':
+			return {...opChainConfig, ...chainInfo}
+		case 'celo':
+			return {...celoChainConfig, ...chainInfo}
+		case 'zksync':
+			return {...zksyncChainConfig, ...chainInfo}
+		default:
+			return {
+
+				...chainInfo
+			}
+	}
+
+}
+
 export function viemify<ContractsInfos extends GenericContractsInfos, TAddress extends Address = Address>({connection, account, network, providerOverride}: {
 	connection: ConnectedState;
 	account: ConnectedAccountState<TAddress>;
@@ -48,11 +70,10 @@ export function viemify<ContractsInfos extends GenericContractsInfos, TAddress e
 	client: ClientPair<CustomTransport, Chain, Account<TAddress>>;
 } {
 
+
 	
 	const transport = custom(providerOverride ? providerOverride : connection.provider);
-	const chain: Chain = {
-		id: parseInt(network.chainId),
-	} as Chain;
+	const chain: Chain = fromChainInfoToChain(network.chainInfo);
 	const publicClient = createPublicClient({transport, chain});
 	const walletClient = createWalletClient({
 		transport,
