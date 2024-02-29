@@ -16,14 +16,14 @@ const contracts = chainConfig.contracts;
 const gasPriceOracleAbi = [
 	{
 		inputs: [],
-		name: 'l1BaseFee',
+		name: 'scalar',
 		outputs: [{internalType: 'uint256', name: '', type: 'uint256'}],
 		stateMutability: 'view',
 		type: 'function',
 	},
 ] as const;
 
-export type GetL1BaseFeeParameters<
+export type GetL1FeeScalarParameters<
 	TChain extends Chain | undefined = Chain | undefined,
 	TChainOverride extends Chain | undefined = undefined
 > = GetChainParameter<TChain, TChainOverride> & {
@@ -31,9 +31,9 @@ export type GetL1BaseFeeParameters<
 	gasPriceOracleAddress?: Address;
 };
 
-export type GetL1BaseFeeReturnType = bigint;
+export type GetL1FeeScalarReturnType = bigint;
 
-export type GetL1BaseFeeErrorType =
+export type GetL1FeeScalarErrorType =
 	| RequestErrorType
 	| PrepareTransactionRequestErrorType
 	| HexToNumberErrorType
@@ -41,30 +41,30 @@ export type GetL1BaseFeeErrorType =
 	| ErrorType;
 
 /**
- * get the L1 base fee
+ * get the L1 fee scalar
  *
  * @param client - Client to use
- * @param parameters - {@link GetL1BaseFeeParameters}
- * @returns The basefee (in wei). {@link GetL1BaseFeeReturnType}
+ * @param parameters - {@link GetL1FeeScalarParameters}
+ * @returns The FeeScalar (in wei). {@link GetL1FeeScalarReturnType}
  *
  * @example
  * import { createPublicClient, http, parseEther } from 'viem'
  * import { optimism } from 'viem/chains'
- * import { getL1BaseFee } from 'viem/chains/optimism'
+ * import { getL1FeeScalar } from 'viem/chains/optimism'
  *
  * const client = createPublicClient({
  *   chain: optimism,
  *   transport: http(),
  * })
- * const l1BaseFee = await getL1BaseFee(client)
+ * const l1FeeScalar = await getL1FeeScalar(client)
  */
-export async function getL1BaseFee<
+export async function getL1FeeScalar<
 	TChain extends Chain | undefined,
 	TChainOverride extends Chain | undefined = undefined
 >(
 	client: PublicClient<Transport, TChain>,
-	args?: GetL1BaseFeeParameters<TChain, TChainOverride>
-): Promise<GetL1BaseFeeReturnType> {
+	args?: GetL1FeeScalarParameters<TChain, TChainOverride>
+): Promise<GetL1FeeScalarReturnType> {
 	const {chain = client.chain, gasPriceOracleAddress: gasPriceOracleAddress_} = args || {};
 
 	const gasPriceOracleAddress = (() => {
@@ -80,6 +80,6 @@ export async function getL1BaseFee<
 	return client.readContract({
 		abi: gasPriceOracleAbi,
 		address: gasPriceOracleAddress,
-		functionName: 'l1BaseFee',
+		functionName: 'scalar',
 	});
 }
