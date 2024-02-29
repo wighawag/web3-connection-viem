@@ -84,3 +84,28 @@ export async function getL1BaseFee<
 		functionName: 'l1BaseFee',
 	});
 }
+
+export type ExtraPublicActions<chain extends Chain | undefined = Chain | undefined> = {
+	/**
+	 * Get the L1 basefee
+	 *
+	 * @param client - Client to use
+	 * @param parameters - {@link GetL1BaseFeeParameters}
+	 * @returns The fee (in wei). {@link GetL1BaseFeeReturnType}
+	 *
+	 * @example
+	 * import { createPublicClient, http, parseEther } from 'viem'
+	 * import { optimism } from 'viem/chains'
+	 * import { publicActionsL2 } from 'viem/op-stack'
+	 *
+	 * const client = createPublicClient({
+	 *   chain: optimism,
+	 *   transport: http(),
+	 * }).extend(publicActionsL2())
+	 *
+	 * const l1BaseFee = await client.getL1BaseFee()
+	 */
+	getL1BaseFee: <chainOverride extends Chain | undefined = undefined>(
+		parameters?: GetL1BaseFeeParameters<chain, chainOverride>
+	) => Promise<GetL1BaseFeeReturnType>;
+};

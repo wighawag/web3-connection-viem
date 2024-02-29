@@ -32,7 +32,7 @@ import type {
 	PublicClient,
 	WalletClient,
 } from 'viem';
-import {GetL1BaseFeeParameters, getL1BaseFee} from './actions/getL1BaseFee';
+import {ExtraPublicActions, GetL1BaseFeeParameters, getL1BaseFee} from './actions/getL1BaseFee';
 
 type ClientPair<
 	TTransport extends Transport = Transport,
@@ -56,7 +56,10 @@ export type ClientPairWithOptionalActions<TAddress extends Address> = ClientPair
 		| (WalletClient<CustomTransport, Chain, AccountType<TAddress>> & Eip712WalletActions<Chain, AccountType<TAddress>>);
 
 	public:
-		| (PublicClient<CustomTransport, Chain> & PublicActionsL2<Chain> & PublicActionsL1<Chain>)
+		| (PublicClient<CustomTransport, Chain> &
+				PublicActionsL2<Chain> &
+				PublicActionsL1<Chain> &
+				ExtraPublicActions<Chain>)
 		| PublicClient<CustomTransport, Chain>;
 };
 
@@ -127,7 +130,10 @@ export function viemify<
 	});
 
 	let opPublicClient:
-		| (PublicClient<CustomTransport, Chain> & PublicActionsL2<Chain> & PublicActionsL1<Chain>)
+		| (PublicClient<CustomTransport, Chain> &
+				PublicActionsL2<Chain> &
+				PublicActionsL1<Chain> &
+				ExtraPublicActions<Chain>)
 		| undefined;
 	let opWalletClient:
 		| (WalletClient<CustomTransport, Chain, AccountType<TAddress>> &
