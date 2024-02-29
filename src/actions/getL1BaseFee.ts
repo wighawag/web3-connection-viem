@@ -4,14 +4,16 @@ import {
 	Client,
 	GetChainParameter,
 	PrepareTransactionRequestErrorType,
+	PublicClient,
 	ReadContractErrorType,
 	Transport,
 } from 'viem';
-import {readContract} from 'viem/_types/actions/public/readContract';
-import {ErrorType} from 'viem/_types/errors/utils';
+import {ErrorType} from 'viem/errors/utils';
 import {HexToNumberErrorType, RequestErrorType, getChainContractAddress} from 'viem/utils';
 
 import {chainConfig} from 'viem/op-stack';
+// import {ContractFunctionArgs} from 'viem';
+
 const contracts = chainConfig.contracts;
 
 const gasPriceOracleAbi = [
@@ -63,7 +65,7 @@ export async function getL1BaseFee<
 	TChain extends Chain | undefined,
 	TChainOverride extends Chain | undefined = undefined
 >(
-	client: Client<Transport, TChain>,
+	client: PublicClient<Transport, TChain>,
 	args?: GetL1BaseFeeParameters<TChain, TChainOverride>
 ): Promise<GetL1BaseFeeReturnType> {
 	const {chain = client.chain, gasPriceOracleAddress: gasPriceOracleAddress_} = args || {};
@@ -78,7 +80,7 @@ export async function getL1BaseFee<
 		return contracts.gasPriceOracle.address;
 	})();
 
-	return readContract(client, {
+	return client.readContract({
 		abi: gasPriceOracleAbi,
 		address: gasPriceOracleAddress,
 		functionName: 'l1BaseFee',
