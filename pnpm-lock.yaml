@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 devDependencies:
+  abitype:
+    specifier: ^1.0.0
+    version: 1.0.0(typescript@5.3.3)
   rimraf:
     specifier: ^5.0.5
     version: 5.0.5

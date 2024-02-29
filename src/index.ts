@@ -7,7 +7,7 @@ import {
 	Web3ConnectionProvider,
 	ChainInfo,
 } from 'web3-connection';
-import {createPublicClient, createWalletClient, custom, getContract} from 'viem';
+import {createPublicClient, createWalletClient, custom} from 'viem';
 import {
 	chainConfig as opChainConfig,
 	publicActionsL2,
@@ -113,7 +113,7 @@ export function viemify<
 	connection: ConnectedState;
 	account: ConnectedAccountState<TAddress>;
 	network: ConnectedNetworkState<ContractsInfos>;
-	contracts: ViemContracts<ContractsInfos, TChain, TAddress>;
+	// contracts: ViemContracts<ContractsInfos, TChain, TAddress>;
 	client: ClientPairWithOptionalActions<TAddress>;
 } {
 	const transport = custom(providerOverride ? providerOverride : connection.provider);
@@ -156,23 +156,23 @@ export function viemify<
 	}
 
 	const client = {wallet: opWalletClient || zksyncWalletClient || walletClient, public: opPublicClient || publicClient};
-	const anyContracts = network.contracts as GenericContractsInfos;
-	const contracts: ViemContracts<ContractsInfos, TChain, TAddress> = Object.keys(network.contracts).reduce(
-		(prev, curr) => {
-			const contract = anyContracts[curr];
-			const viemContract = getContract({...contract, client});
+	// const anyContracts = network.contracts as GenericContractsInfos;
+	// const contracts: ViemContracts<ContractsInfos, TChain, TAddress> = Object.keys(network.contracts).reduce(
+	// 	(prev, curr) => {
+	// 		const contract = anyContracts[curr];
+	// 		const viemContract = getContract({...contract, client});
 
-			(prev as any)[curr] = viemContract;
-			return prev;
-		},
-		{} as ViemContracts<ContractsInfos, TChain, TAddress>
-	);
+	// 		(prev as any)[curr] = viemContract;
+	// 		return prev;
+	// 	},
+	// 	{} as ViemContracts<ContractsInfos, TChain, TAddress>
+	// );
 	return {
 		connection,
 		account: account as ConnectedAccountState<TAddress>,
 		network,
 		client,
-		contracts,
+		// contracts,
 	};
 }
 
@@ -188,7 +188,7 @@ export function initViemContracts<ContractsInfos extends GenericContractsInfos>(
 				connection: ConnectedState;
 				account: ConnectedAccountState<TAddress>;
 				network: ConnectedNetworkState<ContractsInfos>;
-				contracts: ViemContracts<ContractsInfos, TChain, TAddress>;
+				// contracts: ViemContracts<ContractsInfos, TChain, TAddress>;
 				client: ClientPairWithOptionalActions<TAddress>;
 			}) => Promise<T>
 		) {
