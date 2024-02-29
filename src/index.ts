@@ -32,6 +32,7 @@ import type {
 	PublicClient,
 	WalletClient,
 } from 'viem';
+import {GetL1BaseFeeParameters, getL1BaseFee} from './actions/getL1BaseFee';
 
 type ClientPair<
 	TTransport extends Transport = Transport,
@@ -134,7 +135,14 @@ export function viemify<
 				WalletActionsL1<Chain, AccountType<TAddress>>)
 		| undefined;
 	if (network.chainInfo.chainType === 'op-stack') {
-		opPublicClient = publicClient.extend(publicActionsL2()).extend(publicActionsL1());
+		opPublicClient = publicClient
+			.extend(publicActionsL2())
+			.extend(publicActionsL1())
+			.extend((client) => ({
+				getL1BaseFee: <TChain extends Chain | undefined, TChainOverride extends Chain | undefined = undefined>(
+					args?: GetL1BaseFeeParameters<TChain, TChainOverride>
+				) => getL1BaseFee(client, args),
+			}));
 		publicClient = opPublicClient;
 		opWalletClient = walletClient.extend(walletActionsL2()).extend(walletActionsL1());
 		walletClient = opWalletClient;
