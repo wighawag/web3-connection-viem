@@ -24,8 +24,8 @@ devDependencies:
     specifier: ^2.19.8
     version: 2.19.8(typescript@5.5.4)
   web3-connection:
-    specifier: ^0.1.39
-    version: 0.1.39(svelte@4.2.18)
+    specifier: ^0.1.40
+    version: 0.1.40(svelte@4.2.18)
 
 packages:
 
@@ -1034,8 +1034,8 @@ packages:
       thenify-all: 1.6.0
     dev: true
 
-  /named-logs@0.2.2:
-    resolution: {integrity: sha512-uXvQSEp8W99elz/UFpmptvRkjbr+UwJRfONsTND/W4ncqLlio0hfIBKe2HUhz3pPHhNd1XUoHyf1cn8Pgxt4oA==}
+  /named-logs@0.2.4:
+    resolution: {integrity: sha512-QHlcLpK2Ij+u7ZYDYgaYkTIlC/NcOwEnFdqbY+PF9ewAMUjvBwRVUyqBUtVaJ3V2YKVy2HiloAgLUdOEVRRyBA==}
     dev: true
 
   /normalize-path@3.0.0:
@@ -1426,12 +1426,12 @@ packages:
       - zod
     dev: true
 
-  /web3-connection@0.1.39(svelte@4.2.18):
-    resolution: {integrity: sha512-VpGOg0uJQ/Xp/rwV+QDTxOl5sloFBuSuIlfaSb60eLvaub3kW5ca2njqdDsuvh5/3H3KEd0cY88WiWXTifHCaQ==}
+  /web3-connection@0.1.40(svelte@4.2.18):
+    resolution: {integrity: sha512-Mr4gR4dVPzUUaD9vgmTBe6ndMy8Kt/EeMFNb/koKeomK73kx5mpUK6DB+no15lkAxPZWHWWWkqTciJcvVwOiMA==}
     peerDependencies:
       svelte: ^4.0.0
     dependencies:
-      named-logs: 0.2.2
+      named-logs: 0.2.4
       svelte: 4.2.18
     dev: true
 

@@ -32,7 +32,6 @@ import type {
 	PublicClient,
 	WalletClient,
 } from 'viem';
-import {ExtraPublicActions, extraActions} from './actions';
 
 type ClientPair<
 	TTransport extends Transport = Transport,
@@ -56,10 +55,7 @@ export type ClientPairWithOptionalActions<TAddress extends Address> = ClientPair
 		| (WalletClient<CustomTransport, Chain, AccountType<TAddress>> & Eip712WalletActions<Chain, AccountType<TAddress>>);
 
 	public:
-		| (PublicClient<CustomTransport, Chain> &
-				PublicActionsL2<Chain> &
-				PublicActionsL1<Chain> &
-				ExtraPublicActions<Chain>)
+		| (PublicClient<CustomTransport, Chain> & PublicActionsL2<Chain> & PublicActionsL1<Chain>)
 		| PublicClient<CustomTransport, Chain>;
 };
 
@@ -100,21 +96,18 @@ export function createViemPublicClient({
 	connection: ConnectedState;
 	providerOverride?: Web3ConnectionProvider;
 }):
-	| (PublicClient<CustomTransport, Chain> & PublicActionsL2<Chain> & PublicActionsL1<Chain> & ExtraPublicActions<Chain>)
+	| (PublicClient<CustomTransport, Chain> & PublicActionsL2<Chain> & PublicActionsL1<Chain>)
 	| PublicClient<CustomTransport, Chain> {
 	const transport = custom(providerOverride ? providerOverride : connection.provider);
 	const chain: Chain = fromChainInfoToChain(chainInfo);
 	let publicClient = createPublicClient({transport, chain});
 
 	let opPublicClient:
-		| (PublicClient<CustomTransport, Chain> &
-				PublicActionsL2<Chain> &
-				PublicActionsL1<Chain> &
-				ExtraPublicActions<Chain>)
+		| (PublicClient<CustomTransport, Chain> & PublicActionsL2<Chain> & PublicActionsL1<Chain>)
 		| undefined;
 
 	if (chainInfo.chainType === 'op-stack') {
-		opPublicClient = publicClient.extend(publicActionsL2()).extend(publicActionsL1()).extend(extraActions());
+		opPublicClient = publicClient.extend(publicActionsL2()).extend(publicActionsL1());
 		publicClient = opPublicClient;
 	}
 

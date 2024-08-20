@@ -1,14 +1,14 @@
 {
 	"name": "web3-connection-viem",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"description": "viem support for web3-connection",
 	"publishConfig": {
 		"access": "public"
 	},
 	"type": "module",
-	"main": "dist/index.cjs",
-	"module": "dist/index.js",
-	"types": "dist/index.d.ts",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
 	"devDependencies": {
 		"abitype": "^1.0.6",
 		"rimraf": "^6.0.1",
@@ -16,7 +16,7 @@
 		"tsup": "^8.2.4",
 		"typescript": "^5.5.4",
 		"viem": "^2.19.8",
-		"web3-connection": "^0.1.39"
+		"web3-connection": "^0.1.40"
 	},
 	"peerDependencies": {
 		"viem": "^2.19.8"
